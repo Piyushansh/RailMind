@@ -1,0 +1,24 @@
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Java / Spring Boot
+**/target/
+*.class
+
+# Node / React
+**/node_modules/
+**/dist/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Logs and temporary files
+*.log
+.DS_Store
+
+# Local environment files
+.vscode/

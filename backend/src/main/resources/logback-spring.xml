@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!--
+        Structured JSON logs so every line is machine-parseable, and so
+        correlationId (set by CorrelationIdFilter for HTTP requests, and by
+        TrainEventConsumer/DomainEventConsumer/DeadLetterConsumer for Kafka
+        processing - see those classes) is a real, queryable field on every
+        log line emitted while it's set, not just a value buried in a
+        plain-text message. includeMdcKeyName ensures ONLY the keys this
+        app actually sets reach the log (no accidental leakage of whatever
+        else might end up in MDC).
+    -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>correlationId</includeMdcKeyName>
+            <customFields>{"service":"railmind-backend"}</customFields>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <message>message</message>
+                <logger>logger</logger>
+                <thread>thread</thread>
+                <level>level</level>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+
+    <logger name="com.railmind" level="${RAILMIND_LOG_LEVEL:-INFO}"/>
+</configuration>

@@ -1,0 +1,128 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: railmind-backend
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/railmind}
+    username: ${DB_USERNAME:railmind}
+    password: ${DB_PASSWORD:railmind}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: validate      # schema is owned by Flyway migrations, not Hibernate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      connect-timeout: 2000ms
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+    consumer:
+      group-id: railmind-disruption
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      ack-mode: MANUAL
+
+  cache:
+    type: redis
+
+  jackson:
+    default-property-inclusion: non_null
+
+springdoc:
+  swagger-ui:
+    path: /docs
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+railmind:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  jwt:
+    secret: ${JWT_SECRET:dev-only-change-me-dev-only-change-me-32bytes-min}
+    access-token-ttl-minutes: ${JWT_ACCESS_TTL_MIN:15}
+    refresh-token-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
+  auth:
+    password-reset-ttl-minutes: ${PASSWORD_RESET_TTL_MIN:30}
+    email-verification-ttl-hours: ${EMAIL_VERIFICATION_TTL_HOURS:48}
+  ai:
+    provider: ${AI_PROVIDER:openai}       # openai | anthropic | mock
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      model: ${OPENAI_MODEL:gpt-4o}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      model: ${ANTHROPIC_MODEL:claude-sonnet-4-6}
+      base-url: https://api.anthropic.com/v1/messages
+  refund:
+    # percentage of fare retained by RailMind depending on hours-before-departure at cancellation time
+    full-refund-hours-before: 48
+    partial-refund-hours-before: 4
+    partial-refund-deduction-percent: 25
+    late-cancellation-deduction-percent: 50
+  booking:
+    seat-hold-minutes: ${SEAT_HOLD_MINUTES:15}
+    hold-expiry-sweep-interval-ms: ${HOLD_EXPIRY_SWEEP_INTERVAL_MS:60000}
+  passenger:
+    max-saved: ${MAX_SAVED_PASSENGERS:10}
+  rag:
+    embedding-provider: ${RAG_EMBEDDING_PROVIDER:hashing}   # openai | hashing (always-available deterministic fallback)
+    top-k: ${RAG_TOP_K:5}
+    min-similarity: ${RAG_MIN_SIMILARITY:0.15}
+    chunk-size-chars: ${RAG_CHUNK_SIZE_CHARS:800}
+    chunk-overlap-chars: ${RAG_CHUNK_OVERLAP_CHARS:150}
+    openai:
+      embedding-model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+  kafka:
+    train-events-topic: ${TRAIN_EVENTS_TOPIC:train-events}
+    booking-events-topic: ${BOOKING_EVENTS_TOPIC:booking-events}
+    payment-events-topic: ${PAYMENT_EVENTS_TOPIC:payment-events}
+    notification-events-topic: ${NOTIFICATION_EVENTS_TOPIC:notification-events}
+    ai-events-topic: ${AI_EVENTS_TOPIC:ai-events}
+    audit-events-topic: ${AUDIT_EVENTS_TOPIC:audit-events}
+    retry-initial-interval-ms: ${KAFKA_RETRY_INITIAL_INTERVAL_MS:1000}
+    retry-multiplier: ${KAFKA_RETRY_MULTIPLIER:2.0}
+    retry-max-elapsed-ms: ${KAFKA_RETRY_MAX_ELAPSED_MS:15000}
+  trip-guardian:
+    # Below this delay, we still notify the passenger but don't bother computing/showing
+    # an alternative - a 10 minute delay isn't worth suggesting a different train for.
+    alternative-suggestion-delay-threshold-minutes: ${TRIP_GUARDIAN_DELAY_THRESHOLD_MIN:30}
+
+logging:
+  level:
+    com.railmind: INFO
+    org.springframework.security: INFO

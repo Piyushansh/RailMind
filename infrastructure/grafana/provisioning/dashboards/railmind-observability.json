@@ -1,0 +1,100 @@
+{
+  "title": "RailMind Observability",
+  "uid": "railmind-observability",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "API latency (p95, by URI)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, uri))",
+          "legendFormat": "{{uri}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "API requests/sec by status",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count[5m])) by (status)",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Bookings created / confirmed / cancelled",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "rate(railmind_bookings_created_total[5m])", "legendFormat": "created" },
+        { "expr": "rate(railmind_bookings_confirmed_total[5m])", "legendFormat": "confirmed" },
+        { "expr": "rate(railmind_bookings_cancelled_total[5m])", "legendFormat": "cancelled" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Payments by status",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(railmind_payments_total[5m])) by (status)", "legendFormat": "{{status}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Kafka events processed (by topic, outcome)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "sum(rate(railmind_kafka_events_total[5m])) by (topic, outcome)", "legendFormat": "{{topic}} - {{outcome}}" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Kafka dead-lettered events (by topic)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        { "expr": "sum(rate(railmind_kafka_dead_lettered_total[5m])) by (topic)", "legendFormat": "{{topic}}" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "AI tool executions (by agent, outcome)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "targets": [
+        { "expr": "sum(rate(railmind_ai_tool_executions_total[5m])) by (agent, outcome)", "legendFormat": "{{agent}} - {{outcome}}" }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "RAG queries (grounded vs not)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "targets": [
+        { "expr": "sum(rate(railmind_rag_queries_total[5m])) by (grounded)", "legendFormat": "grounded={{grounded}}" }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Errors by code",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+      "targets": [
+        { "expr": "sum(rate(railmind_errors_total[5m])) by (type)", "legendFormat": "{{type}}" }
+      ]
+    }
+  ]
+}
